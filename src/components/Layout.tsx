@@ -1,27 +1,30 @@
-import { Link } from "react-router-dom";
+// src/components/Layout.tsx
+import { useState } from "react";
+import Sidebar from "./Sidebar";
+import Navbar from "./Navbar";
 
 export default function Layout({ children }: any) {
+  const [isOpen, setIsOpen] = useState(true);
+
+  const toggleSidebar = () => setIsOpen((prev) => !prev);
+
   return (
-    <div className="flex min-h-screen bg-[#F9FAFB]">
+    <div className="flex h-screen bg-[#F9FAFB]">
 
       {/* Sidebar */}
-      <div className="w-60 bg-white border-r p-4 space-y-4">
-        <h2 className="font-semibold text-[#1F2937] text-lg">
-          Quotations
-        </h2>
+      <Sidebar isOpen={isOpen} toggle={toggleSidebar} />
 
-        <Link to="/" className="block hover:bg-gray-100 p-2 rounded">
-          Create Quote
-        </Link>
+      {/* Main */}
+      <div
+        className={`flex flex-col flex-1 transition-all duration-300 ${
+          isOpen ? "ml-60" : "ml-16"
+        }`}
+      >
+        <Navbar />
 
-        <Link to="/quotes" className="block hover:bg-gray-100 p-2 rounded">
-          View Quotes
-        </Link>
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 p-6">
-        {children}
+        <div className="p-6 overflow-y-auto flex-1">
+          {children}
+        </div>
       </div>
     </div>
   );
