@@ -1,9 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { API } from "../api/api";
 import { useNavigate } from "react-router-dom";
+import DataTable from "../components/DataTable";
+import  type { MRT_ColumnDef } from "mantine-react-table";
+import { Button, Badge } from "@mantine/core";
+
+type Quote = {
+  _id: string;
+  title: string;
+  createdAt: string;
+  responseCount: number;
+  selectedSupplier?: string;
+  selectedAmount?: number;
+};
 
 export default function QuotesList() {
-  const [quotes, setQuotes] = useState<any[]>([]);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -14,7 +26,7 @@ export default function QuotesList() {
         const res = await API.get("/quotations");
 
         const sorted = res.data.sort(
-          (a: any, b: any) =>
+          (a: Quote, b: Quote) =>
             new Date(b.createdAt).getTime() -
             new Date(a.createdAt).getTime()
         );
@@ -30,6 +42,54 @@ export default function QuotesList() {
     fetchQuotes();
   }, []);
 
+  const columns = useMemo<MRT_ColumnDef<Quote>[]>(
+    () => [
+      {
+        accessorKey: "title",
+        header: "Title",
+      },
+      {
+        accessorKey: "createdAt",
+        header: "Created Date",
+        Cell: ({ cell }) =>
+          new Date(cell.getValue<string>()).toLocaleString(),
+      },
+      {
+        accessorKey: "responseCount",
+        header: "Responses",
+      },
+      {
+        header: "Status",
+        Cell: ({ row }) => {
+          const q = row.original;
+
+          return q.selectedSupplier ? (
+            <div>
+              <Badge color="green">Selected</Badge>
+              <div className="text-xs text-gray-500">
+                ₹ {q.selectedAmount} • {q.selectedSupplier}
+              </div>
+            </div>
+          ) : (
+            <Badge color="gray">Open</Badge>
+          );
+        },
+      },
+      {
+        header: "Action",
+        Cell: ({ row }) => (
+          <Button
+            size="xs"
+            onClick={() => navigate(`/quatation/${row.original._id}`)}
+          >
+            View
+          </Button>
+        ),
+      },
+    ],
+    []
+  );
+
   return (
     <div className="min-h-screen bg-[#F9FAFB] flex justify-center py-8">
       <div className="w-full max-w-6xl bg-white p-6 rounded-lg shadow-sm space-y-4">
@@ -37,85 +97,7 @@ export default function QuotesList() {
           All Quotations
         </h2>
 
-        {loading && (
-          <p className="text-sm text-gray-500">Loading...</p>
-        )}
-
-        {!loading && quotes.length === 0 && (
-          <p className="text-gray-500 text-sm">
-            No quotations found
-          </p>
-        )}
-
-        {!loading && quotes.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b">
-                <tr className="text-left">
-                  <th className="p-3">Title</th>
-                  <th className="p-3">Created Date</th>
-                  <th className="p-3">Responses</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3">Action</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {quotes.map((q) => (
-                  <tr
-                    key={q._id}
-                    className="border-b hover:bg-gray-50"
-                  >
-                    {/* Title */}
-                    <td className="p-3 font-medium text-[#1F2937]">
-                      {q.title}
-                    </td>
-
-                    {/* Date */}
-                    <td className="p-3 text-gray-500 text-xs">
-                      {new Date(q.createdAt).toLocaleString()}
-                    </td>
-
-                    {/* Response Count */}
-                    <td className="p-3 text-gray-600">
-                      {q.responseCount || 0}
-                    </td>
-
-                    {/* Status */}
-                    <td className="p-3">
-                      {q.selectedSupplier ? (
-                        <div className="text-xs">
-                          <span className="text-green-600 font-medium">
-                            Selected
-                          </span>
-                          <div className="text-gray-500">
-                            ₹ {q.selectedAmount} • {q.selectedSupplier}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400 text-xs">
-                          Open
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Action */}
-                    <td className="p-3">
-                      <button
-                        onClick={() =>
-                          navigate(`/dashboard/${q._id}`)
-                        }
-                        className="bg-[#1F2937] text-white px-3 py-1 rounded text-xs hover:opacity-90"
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DataTable columns={columns} data={quotes} loading={loading} />
       </div>
     </div>
   );

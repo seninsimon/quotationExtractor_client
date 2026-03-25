@@ -1,10 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { API } from "../api/api";
+import DataTable from "../components/DataTable";
+import type { MRT_ColumnDef } from "mantine-react-table";
+import { Button, Badge } from "@mantine/core";
+import { confirmAction } from "../utils/confirm";
+import PageHeader from "../components/PageHeader";
 
-export default function Dashboard() {
+type Response = {
+  _id: string;
+  supplierName: string;
+  email?: string;
+  contact?: string;
+  amount?: number;
+  textQuote?: string;
+  file?: string;
+  notes?: string;
+  status: string;
+  createdAt: string;
+};
+
+export default function QuatationInfo() {
   const { id } = useParams();
-  const [responses, setResponses] = useState<any[]>([]);
+  const [responses, setResponses] = useState<Response[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchResponses = async () => {
@@ -12,9 +30,8 @@ export default function Dashboard() {
       setLoading(true);
       const res = await API.get(`/responses/quotation/${id}`);
 
-      // sort by lowest amount
       const sorted = res.data.sort(
-        (a: any, b: any) => (a.amount || 0) - (b.amount || 0)
+        (a: Response, b: Response) => (a.amount || 0) - (b.amount || 0),
       );
 
       setResponses(sorted);
@@ -35,117 +52,108 @@ export default function Dashboard() {
         status: "selected",
       });
 
-      // update UI → only one selected
       setResponses((prev) =>
         prev.map((r) => ({
           ...r,
           status: r._id === responseId ? "selected" : "reviewed",
-        }))
+        })),
       );
     } catch (err) {
       alert("Failed to update");
     }
   };
 
-  return (
-    <div className="min-h-screen bg-[#F9FAFB] flex justify-center py-8">
-      <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-sm space-y-4">
-        <h2 className="text-lg font-semibold text-[#1F2937]">
-          Quotes
-        </h2>
-
-        {loading && (
-          <p className="text-sm text-gray-500">Loading...</p>
-        )}
-
-        {!loading && responses.length === 0 && (
-          <p className="text-gray-500 text-sm">
-            No responses yet
-          </p>
-        )}
-
-        {responses.map((r) => (
-          <div
-            key={r._id}
-            className={`border border-[#D1D5DB] p-4 rounded space-y-3 transition ${
-              r.status === "selected"
-                ? "border-green-500 bg-green-50"
-                : "hover:shadow-sm"
-            }`}
-          >
-            {/* Top Row */}
-            <div className="flex justify-between items-center">
-              <p className="font-medium text-[#1F2937]">
-                {r.supplierName || "Unknown Supplier"}
-              </p>
-
-              <span
-                className={`text-xs px-2 py-1 rounded ${
-                  r.status === "selected"
-                    ? "bg-green-100 text-green-600"
-                    : "bg-gray-100 text-gray-500"
-                }`}
-              >
-                {r.status}
-              </span>
-            </div>
-
-            {/* Contact */}
-            <div className="text-sm text-gray-600 space-y-1">
-              {r.email && <p>Email: {r.email}</p>}
-              {r.contact && <p>Phone: {r.contact}</p>}
-            </div>
-
-            {/* Amount */}
-            <p className="text-sm">
-              Amount:{" "}
-              <span className="font-semibold text-[#1F2937]">
-                {r.amount ? `₹ ${r.amount}` : "Not provided"}
-              </span>
-            </p>
-
-            {/* Quote */}
-            {r.textQuote && (
-              <p className="text-sm text-gray-600 border-l-2 pl-2">
-                {r.textQuote}
-              </p>
-            )}
-
-            {/* File */}
-            {r.file && (
-              <a
-                href={`${import.meta.env.VITE_API_URL}/uploads/${r.file}`}
-                target="_blank"
-                className="text-blue-500 text-sm underline"
-              >
-                View Attachment
-              </a>
-            )}
-
-            {/* Notes */}
-            {r.notes && (
-              <p className="text-xs text-gray-500">
-                Notes: {r.notes}
-              </p>
-            )}
-
-            {/* Timestamp */}
-            <p className="text-xs text-gray-400">
-              {new Date(r.createdAt).toLocaleString()}
-            </p>
-
-            {/* Action */}
-            {r.status !== "selected" && (
-              <button
-                onClick={() => selectQuote(r._id)}
-                className="w-full bg-[#1F2937] text-white p-2 rounded hover:opacity-90"
-              >
-                Select Quote
-              </button>
-            )}
+  const columns = useMemo<MRT_ColumnDef<Response>[]>(
+    () => [
+      {
+        accessorKey: "supplierName",
+        header: "Supplier",
+      },
+      {
+        header: "Contact",
+        Cell: ({ row }) => (
+          <div className="text-xs">
+            {row.original.email && <div>{row.original.email}</div>}
+            {row.original.contact && <div>{row.original.contact}</div>}
           </div>
-        ))}
+        ),
+      },
+      {
+        accessorKey: "amount",
+        header: "Amount",
+        Cell: ({ cell }) =>
+          cell.getValue<number>() ? `₹ ${cell.getValue<number>()}` : "N/A",
+      },
+      {
+        accessorKey: "textQuote",
+        header: "Quote",
+      },
+      {
+        header: "Attachment",
+        Cell: ({ row }) =>
+          row.original.file ? (
+            <a
+              href={`${import.meta.env.VITE_API_URL}/uploads/${row.original.file}`}
+              target="_blank"
+              className="text-blue-500 underline text-xs"
+            >
+              View
+            </a>
+          ) : (
+            "-"
+          ),
+      },
+      {
+        header: "Status",
+        Cell: ({ row }) => (
+          <Badge color={row.original.status === "selected" ? "green" : "gray"}>
+            {row.original.status}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: "createdAt",
+        header: "Date",
+        Cell: ({ cell }) => new Date(cell.getValue<string>()).toLocaleString(),
+      },
+      {
+        id: "actions", // 🔥 REQUIRED for pinning
+        header: "Action",
+        Cell: ({ row }) =>
+          row.original.status !== "selected" ? (
+            <Button
+              size="xs"
+              onClick={() =>
+                confirmAction({
+                  title: "Select Quote",
+                  message: "Are you sure you want to select this quote?",
+                  confirmText: "Select",
+                  cancelText: "Cancel",
+                  onConfirm: () => selectQuote(row.original._id),
+                })
+              }
+            >
+              Select
+            </Button>
+          ) : (
+            "Selected"
+          ),
+      },
+    ],
+    [],
+  );
+
+  return (
+    <>
+      <PageHeader
+        title="Quotes"
+      />
+      <div className="min-h-screen  flex justify-center py-8">
+        <div className="w-full max-w-6xl  rounded-lg shadow-sm space-y-4">
+
+          <DataTable columns={columns} data={responses} loading={loading} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
