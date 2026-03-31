@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import DataTable from "../components/DataTable";
 import  type { MRT_ColumnDef } from "mantine-react-table";
 import { Button, Badge } from "@mantine/core";
+import PageHeader from "../components/PageHeader";
 
 type Quote = {
   _id: string;
@@ -91,14 +92,13 @@ export default function QuotesList() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex justify-center py-8">
-      <div className="w-full max-w-6xl bg-white p-6 rounded-lg shadow-sm space-y-4">
-        <h2 className="text-lg font-semibold text-[#1F2937]">
-          All Quotations
-        </h2>
-
+    <>
+    <PageHeader title="Quotations" />
+    <div className=" bg-[#F9FAFB] flex justify-center">
+      <div className="w-full max-w-6xl bg-white rounded-lg shadow-sm space-y-4">
         <DataTable columns={columns} data={quotes} loading={loading} />
       </div>
     </div>
+    </>
   );
 }

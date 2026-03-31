@@ -8,14 +8,34 @@ import QuatationInfo from "./pages/QuatationInfo";
 
 function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<CreateQuotation />} />
-        <Route path="/quote/:shareId" element={<SubmitQuote />} />
-        <Route path="/quatation/:id" element={<QuatationInfo />} />
-        <Route path="/quotes" element={<QuotesList />} />
-      </Routes>
-    </Layout>
+    <Routes>
+      <Route path="/quote/:shareId" element={<SubmitQuote />} />
+
+      <Route
+        path="/"
+        element={
+          <Layout>
+            <CreateQuotation />
+          </Layout>
+        }
+      />
+      <Route
+        path="/quotes"
+        element={
+          <Layout>
+            <QuotesList />
+          </Layout>
+        }
+      />
+      <Route
+        path="/quatation/:id"
+        element={
+          <Layout>
+            <QuatationInfo />
+          </Layout>
+        }
+      />
+    </Routes>
   );
 }
 

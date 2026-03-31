@@ -6,6 +6,7 @@ import type { MRT_ColumnDef } from "mantine-react-table";
 import { Button, Badge } from "@mantine/core";
 import { confirmAction } from "../utils/confirm";
 import PageHeader from "../components/PageHeader";
+import ResponseDetailsModal from "../components/ResponseDetailsModal";
 
 type Response = {
   _id: string;
@@ -22,8 +23,15 @@ type Response = {
 
 export default function QuatationInfo() {
   const { id } = useParams();
+
   const [responses, setResponses] = useState<Response[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // ✅ Modal state
+  const [selectedResponse, setSelectedResponse] = useState<Response | null>(
+    null,
+  );
+  const [modalOpen, setModalOpen] = useState(false);
 
   const fetchResponses = async () => {
     try {
@@ -63,6 +71,11 @@ export default function QuatationInfo() {
     }
   };
 
+  const handleView = (data: Response) => {
+    setSelectedResponse(data);
+    setModalOpen(true);
+  };
+
   const columns = useMemo<MRT_ColumnDef<Response>[]>(
     () => [
       {
@@ -87,6 +100,11 @@ export default function QuatationInfo() {
       {
         accessorKey: "textQuote",
         header: "Quote",
+        Cell: ({ cell }) => (
+          <div className="text-xs line-clamp-2">
+            {cell.getValue<string>() || "-"}
+          </div>
+        ),
       },
       {
         header: "Attachment",
@@ -117,27 +135,42 @@ export default function QuatationInfo() {
         Cell: ({ cell }) => new Date(cell.getValue<string>()).toLocaleString(),
       },
       {
-        id: "actions", // 🔥 REQUIRED for pinning
+        id: "actions",
         header: "Action",
-        Cell: ({ row }) =>
-          row.original.status !== "selected" ? (
+        Cell: ({ row }) => (
+          <div className="flex gap-2">
             <Button
               size="xs"
-              onClick={() =>
-                confirmAction({
-                  title: "Select Quote",
-                  message: "Are you sure you want to select this quote?",
-                  confirmText: "Select",
-                  cancelText: "Cancel",
-                  onConfirm: () => selectQuote(row.original._id),
-                })
-              }
+              variant="light"
+              onClick={() => handleView(row.original)}
             >
-              Select
+              View
             </Button>
-          ) : (
-            "Selected"
-          ),
+
+            <div className="flex items-center">
+              {row.original.status !== "selected" ? (
+                <Button
+                  size="xs"
+                  onClick={() =>
+                    confirmAction({
+                      title: "Select Quote",
+                      message: "Are you sure you want to select this quote?",
+                      confirmText: "Select",
+                      cancelText: "Cancel",
+                      onConfirm: () => selectQuote(row.original._id),
+                    })
+                  }
+                >
+                  Select
+                </Button>
+              ) : (
+                <div className="h-[30px] flex items-center px-2 text-green-600 text-xs font-medium bg-green-50 rounded">
+                  Selected
+                </div>
+              )}
+            </div>
+          </div>
+        ),
       },
     ],
     [],
@@ -145,15 +178,19 @@ export default function QuatationInfo() {
 
   return (
     <>
-      <PageHeader
-        title="Quotes"
-      />
-      <div className="min-h-screen  flex justify-center py-8">
-        <div className="w-full max-w-6xl  rounded-lg shadow-sm space-y-4">
+      <PageHeader title="Quotes" />
 
+      <div className="flex justify-center">
+        <div className="w-full max-w-6xl rounded-lg shadow-sm space-y-4">
           <DataTable columns={columns} data={responses} loading={loading} />
         </div>
       </div>
+
+      <ResponseDetailsModal
+        opened={modalOpen}
+        onClose={() => setModalOpen(false)}
+        data={selectedResponse}
+      />
     </>
   );
 }

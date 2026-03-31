@@ -42,10 +42,10 @@ export default function DataTable<T extends Record<string, any>>({
       withBorder: false,
     },
 
-    // 🔥 THIS IS IMPORTANT
     mantineTableContainerProps: {
       style: {
-        minHeight: "500px", // fixed height
+        minHeight: "500px", 
+        maxHeight:"500px",
         overflowY: "auto",
       },
     },

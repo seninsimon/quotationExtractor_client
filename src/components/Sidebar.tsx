@@ -1,4 +1,3 @@
-// src/components/Sidebar.tsx
 import { NavLink } from "react-router-dom";
 import { FileText, Aperture, X, Menu } from "lucide-react";
 

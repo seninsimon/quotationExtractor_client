@@ -1,4 +1,4 @@
-// src/components/Navbar.tsx
+
 export default function Navbar() {
   return (
     <div className="h-14 bg-white border-b flex items-center justify-between px-6">
