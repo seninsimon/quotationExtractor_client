@@ -3,19 +3,39 @@ import Layout from "./components/Layout";
 
 import CreateQuotation from "./pages/CreateQuotationPage";
 import SubmitQuote from "./pages/SupplierSubmissionPage";
-import Dashboard from "./pages/QuatationInfo";
 import QuotesList from "./pages/QuotesList";
+import QuatationInfo from "./pages/QuatationInfo";
 
 function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<CreateQuotation />} />
-        <Route path="/quote/:shareId" element={<SubmitQuote />} />
-        <Route path="/dashboard/:id" element={<Dashboard />} />
-        <Route path="/quotes" element={<QuotesList />} />
-      </Routes>
-    </Layout>
+    <Routes>
+      <Route path="/quote/:shareId" element={<SubmitQuote />} />
+
+      <Route
+        path="/"
+        element={
+          <Layout>
+            <CreateQuotation />
+          </Layout>
+        }
+      />
+      <Route
+        path="/quotes"
+        element={
+          <Layout>
+            <QuotesList />
+          </Layout>
+        }
+      />
+      <Route
+        path="/quatation/:id"
+        element={
+          <Layout>
+            <QuatationInfo />
+          </Layout>
+        }
+      />
+    </Routes>
   );
 }
 
