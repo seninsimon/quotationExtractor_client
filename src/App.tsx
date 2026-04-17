@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 import Layout from "./components/Layout";
-import { Loader } from "lucide-react";
+import Loader from "./components/Loader";
 
 import CreateQuotation from "./pages/CreateQuotationPage";
 import SubmitQuote from "./pages/SupplierSubmissionPage";
@@ -27,7 +27,6 @@ function App() {
     wakeUpServer();
   }, []);
 
-  // 👇 Show loader until backend is ready
   if (loading) return <Loader />;
 
   return (
