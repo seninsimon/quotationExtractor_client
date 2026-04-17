@@ -1,5 +1,9 @@
 import { Routes, Route } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
+
 import Layout from "./components/Layout";
+import { Loader } from "lucide-react";
 
 import CreateQuotation from "./pages/CreateQuotationPage";
 import SubmitQuote from "./pages/SupplierSubmissionPage";
@@ -7,6 +11,25 @@ import QuotesList from "./pages/QuotesList";
 import QuatationInfo from "./pages/QuatationInfo";
 
 function App() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const wakeUpServer = async () => {
+      try {
+        await axios.get(`${import.meta.env.VITE_API_URL}/api/health`);
+      } catch (error) {
+        console.log("Server waking up...");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    wakeUpServer();
+  }, []);
+
+  // 👇 Show loader until backend is ready
+  if (loading) return <Loader />;
+
   return (
     <Routes>
       <Route path="/quote/:shareId" element={<SubmitQuote />} />
